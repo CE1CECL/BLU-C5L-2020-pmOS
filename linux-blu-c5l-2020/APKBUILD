@@ -1,0 +1,62 @@
+# Reference: <https://postmarketos.org/vendorkernel>
+# Kernel config based on: arch/arm/configs/(CHANGEME!)
+
+pkgname=linux-blu-c5l-2020
+pkgver=4.14.133
+pkgrel=0
+pkgdesc="Bold Like Us C5L 2020 kernel fork"
+arch="armv7"
+_carch="arm"
+_flavor="blu-c5l-2020"
+url="https://kernel.org"
+license="GPL-2.0-only"
+options="!strip !check !tracedeps pmb:cross-native"
+makedepends="
+	bash
+	bc
+	bison
+	devicepkg-dev
+	flex
+	openssl-dev
+	perl
+	gcc4
+	linux-headers
+"
+# Compiler: GCC 4 (doesn't boot when compiled with newer versions)
+if [ "${CC:0:5}" != "gcc4-" ]; then
+	CC="gcc4-$CC"
+	HOSTCC="gcc4-gcc"
+	CROSS_COMPILE="gcc4-$CROSS_COMPILE"
+fi
+
+# Source
+_repository="linux-sprd"
+_commit="bcf127ed659e04d248e18d9242c3adcaadf9219f"
+_config="config-$_flavor.$arch"
+source="
+	$pkgname-$_commit.tar.gz::https://github.com/CE1CECL/$_repository/archive/$_commit.tar.gz
+	$_config
+"
+builddir="$srcdir/$_repository-$_commit"
+_outdir="out"
+
+prepare() {
+	default_prepare
+REPLACE_GCCH=0	. downstreamkernel_prepare
+}
+
+build() {
+	unset LDFLAGS
+	make O="$_outdir" ARCH="$_carch" CC="${CC:-gcc}" \
+		KBUILD_BUILD_VERSION="$((pkgrel + 1 ))-postmarketOS"
+}
+
+package() {
+	downstreamkernel_package "$builddir" "$pkgdir" "$_carch" \
+		"$_flavor" "$_outdir"
+}
+
+sha512sums="
+eb0a27017554d1a1df1093d65dcd7b605897954cb2d68093ae170533d466be4b1e268aab313b427d733695d7ef5952b05213bce78475c227630302cbd456d1ea  linux-blu-c5l-2020-bcf127ed659e04d248e18d9242c3adcaadf9219f.tar.gz
+d7eca10f344a5011074de1de2de2eaeaf4d2ab94303e9b1d3585c77ab2cc0f13b0acf7163889f593d0763bf5d968c234a0e9cc57ef5d7b0c107dbf1d7ded81a2  config-blu-c5l-2020.armv7
+"
