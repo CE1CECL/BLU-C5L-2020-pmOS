@@ -31,7 +31,7 @@ fi
 
 # Source
 _repository="linux-sprd"
-_commit="bcf127ed659e04d248e18d9242c3adcaadf9219f"
+_commit="dc152265c9448581cd2f3bded147d0f1c5ee8a9b"
 _config="config-$_flavor.$arch"
 source="
 	$pkgname-$_commit.tar.gz::https://github.com/CE1CECL/$_repository/archive/$_commit.tar.gz
