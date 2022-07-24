@@ -1,0 +1,29 @@
+# Reference: <https://postmarketos.org/devicepkg>
+pkgname=device-blu-c5l-2020-aarch64
+pkgdesc="Bold Like Us BLU C5L 2020"
+pkgver=0.1
+pkgrel=0
+url="https://postmarketos.org"
+license="MIT"
+arch="aarch64"
+options="!check !archcheck"
+depends="
+	linux-blu-c5l-2020-aarch64
+	mesa-dri-gallium
+	mkbootimg
+	postmarketos-base
+"
+makedepends="devicepkg-dev"
+source="deviceinfo"
+
+build() {
+	devicepkg_build $startdir $pkgname
+}
+
+package() {
+	devicepkg_package $startdir $pkgname
+}
+
+sha512sums="
+63be125202da7c28ed3b7e5f34386b568c1cc5867796746e7dc4bd2ad2fdeed60dfa4e9fddca7effbaca35c6a37d5816d5f29b7eec688d2f667f92248a292f6c  deviceinfo
+"
