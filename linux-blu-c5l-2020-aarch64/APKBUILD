@@ -1,0 +1,66 @@
+# Reference: <https://postmarketos.org/vendorkernel>
+# Kernel config based on: arch/arm64/configs/(CHANGEME!)
+
+pkgname=linux-blu-c5l-2020-aarch64
+pkgver=4.14.133
+pkgrel=0
+pkgdesc="Bold Like Us BLU C5L 2020 kernel fork"
+arch="aarch64"
+_carch="arm64"
+_flavor="blu-c5l-2020-aarch64"
+url="https://kernel.org"
+license="GPL-2.0-only"
+options="!strip !check !tracedeps pmb:cross-native"
+makedepends="
+	bash
+	bc
+	bison
+	devicepkg-dev
+	flex
+	openssl-dev
+	perl
+	gcc4
+	linux-headers
+	dtbtool-sprd
+"
+# Compiler: GCC 4 (doesn't boot when compiled with newer versions)
+if [ "${CC:0:5}" != "gcc4-" ]; then
+	CC="gcc4-$CC"
+	HOSTCC="gcc4-gcc"
+	CROSS_COMPILE="gcc4-$CROSS_COMPILE"
+fi
+
+# Source
+_repository="linux-sprd"
+_commit="c8202a80b7874c180cc56f3c3445ca49794658e6"
+_config="config-$_flavor.$arch"
+source="
+	$pkgname-$_commit.tar.gz::https://github.com/ChrisEric1/$_repository/archive/refs/heads/main.tar.gz
+	$_config
+"
+builddir="$srcdir/$_repository-$_commit"
+_outdir="out"
+
+prepare() {
+	default_prepare
+	REPLACE_GCCH=0	. downstreamkernel_prepare
+}
+
+build() {
+	chmod 777 -Rv ./*
+	unset LDFLAGS
+	make O="$_outdir" ARCH="$_carch" CC="${CC:-gcc}" \
+		KBUILD_BUILD_VERSION="$((pkgrel + 1 ))-postmarketOS"
+	dtbTool-sprd -s 2048 -p "scripts/dtc/" -o "$_outdir/arch/$_carch/boot"/dt.img "$_outdir/arch/$_carch/boot/dts/"
+}
+
+package() {
+	downstreamkernel_package "$builddir" "$pkgdir" "$_carch" \
+		"$_flavor" "$_outdir"
+	install -Dm644 "$_outdir/arch/$_carch/boot/"dt.img "$pkgdir"/boot/dt.img
+}
+
+sha512sums="
+94aa0d05fee835a72aa7e0486ed965e67c77908ec92507e7d8710acee7c96731061e234295d363a923f575942bd3731feb9f65b9187b6bcb8ba3ee24b724f7a4  linux-blu-c5l-2020-aarch64-c8202a80b7874c180cc56f3c3445ca49794658e6.tar.gz
+9dbb8783b1d8c8f8713290b8736f5f3e5c1b8e63b4d6eb5590eec5daab40d2ba1f43dbbd2bd38295bda4d7aa83581ec0f024fd76efd160290a0e85cc9c79492e  config-blu-c5l-2020-aarch64.aarch64
+"
